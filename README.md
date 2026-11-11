@@ -1,64 +1,69 @@
-# gPC：concave 完整实验
+# Porous-Medium Tumor Growth UQ with gPC-SG
 
-本包保留 concave 实验，对应论文 Test I(a)。原始代码为 `test1111.m` 的 concave 分支，原图数据为 `1127concave_max_vivo.mat`。
+This repository provides the concave initial-density experiment from **Test I(a)** of:
 
-## 运行
+**Ning Jiang, Liu Liu, and Huimin Yu.**  
+*Efficient stochastic asymptotic-preserving scheme for tumor growth models with uncertain parameters.*  
+Journal of Computational and Applied Mathematics, 473 (2026), 116881.  
+https://doi.org/10.1016/j.cam.2025.116881
 
-在 MATLAB 中将当前目录设为本文件所在目录：
+The paper develops a stochastic asymptotic-preserving method based on generalized polynomial chaos and stochastic Galerkin projection (gPC-SG) for porous-medium tumor growth models. It investigates how uncertain initial conditions and growth parameters affect tumor evolution, and studies the connection with the Hele–Shaw limit.
+
+This repository contains one complete experiment, including initial-data projection, PDE solvers, statistical reconstruction, reference data, and plotting routines. The computed density mean and standard deviation are compared with a stochastic collocation reference.
+
+## Experiment: Test I(a)
+
+The selected experiment considers a two-dimensional spatial domain with one random input. See Section 4.1, equations (29)–(30), and Figures 1–4 of the paper.
+
+| Parameter | Setting |
+|---|---|
+| Random input | \(z \sim \mathcal{U}[-1,1]\) |
+| Spatial domain | \([-2.2,2.2]^2\) |
+| Spatial spacing | \(\Delta x=\Delta y=0.1\) |
+| Time step | \(\Delta t=0.001\) |
+| Pressure-law exponent | \(m=80\) |
+| gPC polynomial degree | \(K=4\) |
+| Reference method | 16-node Gauss–Legendre stochastic collocation |
+| Initial core and rim densities | \(0.15-0.1z\) and \(0.35+0.1z\) |
+| Initial radial parameters | \((0.4,0.5,0.6,0.7)(1+0.3z)\) |
+| Growth coefficient | \(G_0=0.5(1-0.1z)\) |
+
+The piecewise initial density is defined in equation (29). The experiment examines density means, standard deviations, and spatial slices. The paper also reports errors with increasing polynomial degree; this repository focuses on the selected concave experiment rather than the full parameter study.
+
+## Running the Code
+
+In MATLAB, set the current folder to the repository root.
 
 ```matlab
-run_experiment                  % 从初值计算 SG 和全部 SC 轨迹，三个时刻
-run_experiment('cached_reference') % 计算 SG，复用原 SC 参考
-run_experiment('reference_short')  % SG 和 SC 只计算第一个时刻
-plot_saved                      % 直接绘制原保存数据
+run_experiment                     % Recompute SG and all SC trajectories at three times
+run_experiment('cached_reference')  % Recompute SG using the saved SC reference
+run_experiment('reference_short')   % Recompute SG and SC at the first output time
+plot_saved                         % Plot the supplied reference datasets
+run_smoke                          % Run a short solver and plotting check
 ```
 
-全计算会重新做初值投影、时间积分、均值/标准差计算和切片绘图；输出在
-`results/`。原数据不被覆盖。直接画图只使用这一例的数据。
+`run_experiment` performs initial projection, time integration, statistical reconstruction, and plotting. Inputs are loaded from `data/concave_compute.mat`. Generated results are written to `results/` without overwriting the supplied datasets.
 
-## 论文实验：Test I(a)
+`plot_saved` generates figures directly from the saved experimental data. `run_smoke` runs SG and all 16 SC nodes to \(T=0.01\), then checks the saved-data plotting workflow.
 
-N. Jiang, L. Liu, H. Yu, *Efficient stochastic asymptotic-preserving scheme for tumor growth models with uncertain parameters*, JCAM 473 (2026), 116881，§4.1，式 (29)–(30)，图 1–4。
+## Repository Contents
 
-一维随机输入 z∼U[-1,1]；空间域 [-2.2,2.2]^2，dx=dy=0.1，dt=0.001，m=80。
-论文采用 K=4 的 gPC-SG，并以 16 点 Gauss–Legendre stochastic collocation 为参考。
-初始密度的 core 和 rim 分别为 0.15−0.1z 与 0.35+0.1z；
-四个半径为 (0.4,0.5,0.6,0.7)(1+0.3z)，分段定义见式 (29)。
-营养增长系数 G0=0.5(1−0.1z)。
+| Path | Purpose |
+|---|---|
+| `run_experiment.m` | Main computation and statistical post-processing |
+| `run_smoke.m` | Short execution check |
+| `plot_saved.m` | Plotting from saved experimental data |
+| `solver/solve_gpc_sg.m` | Coupled gPC-SG solver |
+| `solver/solve_sc.m` | Deterministic solver for each collocation node |
+| `solver/gpc_growth.m` | Growth-term projection for SG |
+| `solver/sc_growth.m` | Growth-term evaluation for SC |
+| `solver/lgwt.m` | Gauss–Legendre nodes and weights |
+| `data/concave_compute.mat` | Computational inputs and reference statistics |
+| `data/gpc_concave_paper.mat` | Saved data for the selected paper figures |
+| `TESTS.md` | Execution checks and test details |
 
-图 1 比较不同时间的均值和标准差切片；图 2–3 展示 T=1 的统计场；
-图 4 比较 T=0.5 的随机阶数误差。本文代码包只选取 concave 统计重构这一实验，
-不包含整篇文章的全部参数扫描。
+The main entry point calls the SG and SC solvers and their growth-term routines. Auxiliary flux and matrix operations remain within the corresponding solver files.
 
-## 本包运行
+The experiment originates from the concave branch of `test1111.m`; the saved plotting dataset originates from `1127concave_max_vivo.mat`.
 
-`run_experiment` 使用包内初始样本和参考字段，`plot_saved` 使用已保存的原图数据。
-实际运行输入记录在 `data/concave_compute.mat`；调用方式见上方“运行”。
-`run_smoke` 在 T=0.01 执行 SG 与全部 16 个 SC 节点，再检查直接画图。
-保存数据与此次短时计算分别输出，不用短时结果替代论文图。
-
-## 文件与依赖
-
-| 文件 | 用途 | 原名 |
-|---|---|---|
-| `run_experiment.m` | 初值投影、SG/SC 计算、统计、计算图 | 整理后的主入口 |
-| `solver/solve_gpc_sg.m` | 耦合 gPC-SG 求解 | solver_2D_New_sg_couple |
-| `solver/solve_sc.m` | 单节点 SC 求解 | solver_2D_collocation_couple |
-| `solver/gpc_growth.m` | SG 增长项投影 | calculate_rhoGGG |
-| `solver/sc_growth.m` | SC 增长项 | calculate_collocation_rhoGGG |
-| `solver/lgwt.m` | Gauss–Legendre 节点和权重 | lgwt |
-| `plot_saved.m` | 原图切片、场和已保存误差 | test1111 的画图部分 |
-| `data/concave_compute.mat` | 初值、节点、基函数、参考统计 | 原 MAT 数值字段 |
-| `data/gpc_concave_paper.mat` | 原始画图数据 | 1127concave_max_vivo.mat |
-
-上述基础函数全部保留，调用关系为：主入口 → SG/SC solver → 增长项；
-SG 增长项调用 lgwt。通量、矩阵乘法等局部函数仍在相应 solver 内。
-本次只调整文件组织、命名、入口默认方式和部分中文说明，不新增数学模型。
-
-## 论文结果与运行检查
-
-论文报告均值、标准差与 SC 参考吻合，并展示随机阶数增加时误差下降。
-本次只进行短时运行与画图检查；执行范围和结果见 `TESTS.md`。
-
-GitHub 仓库根目录放置本 README、入口文件、`solver/` 和 `data/`。
-不需要展平子目录；入口按自身所在位置定位数据和函数。`results/` 自动生成并已在 `.gitignore` 中排除。
+Keep `solver/` and `data/` in their existing locations. Entry points resolve paths relative to the repository, and the generated `results/` directory is excluded by `.gitignore`.
