@@ -1,4 +1,4 @@
-% 直接使用原始 concave 数据画图，不运行求解器。
+% Plot the supplied concave reference data.
 function result=plot_saved
 %PLOT_SAVED_GPC Reproduce the saved paper figures without running a solver.
 % Curve arrays and slice index come directly from the original workspace.

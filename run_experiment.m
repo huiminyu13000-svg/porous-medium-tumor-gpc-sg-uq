@@ -1,4 +1,4 @@
-% 完整实验入口：读取原设置、调用求解器、重构并保存结果。
+% Run the experiment using the supplied inputs and PDE solvers.
 function results=run_experiment(mode)
 %RUN_EXPERIMENT Run the original gPC-SG solver with the archived experiment settings.
 % mode='short' checks the first saved time; 'reference' also recomputes all SC.
@@ -14,7 +14,9 @@ T=S.T;if any(strcmp(mode,{'short','reference_short'})),T=T(1);end
 % Recompute the initial gPC projection from the original sampled initial fields.
 initial=reshape(reshape(S.rho_samples,[],numel(S.z))*(S.psi.*S.wz),size(S.rho_gPC));
 assert(max(abs(initial(:)-S.rho_gPC(:)))<1e-12,'Initial projection differs from saved settings');
-results=struct('T',T,'X',S.X,'Y',S.Y,'m',80,'K',S.K,'Nz',S.Nz,'dt',.001,'dx',.1,'mode',mode);
+num_modes = size(initial, 3);
+assert(num_modes == double(S.K) && size(S.psi, 2) == num_modes, 'Inconsistent mode count');
+results=struct('num_modes',num_modes,'polynomial_degree',num_modes-1,'T',T,'X',S.X,'Y',S.Y,'m',80,'K',S.K,'Nz',S.Nz,'dt',.001,'dx',.1,'mode',mode);
 results.sc_mean=S.mean_results_collo(:,:,1:numel(T));results.sc_std=S.std_results_collo(:,:,1:numel(T));
 for i=1:numel(T)
  timer=tic;

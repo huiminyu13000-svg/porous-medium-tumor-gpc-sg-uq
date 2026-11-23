@@ -59,10 +59,11 @@ plot_saved                         % Plot the supplied reference datasets
 | `solver/lgwt.m` | Gauss–Legendre nodes and weights |
 | `data/concave_compute.mat` | Computational inputs and reference statistics |
 | `data/gpc_concave_paper.mat` | Saved data for the selected paper figures |
-| `TESTS.md` | Execution checks and test details |
 
 The main entry point calls the SG and SC solvers and their growth-term routines. Auxiliary flux and matrix operations remain within the corresponding solver files.
 
 The experiment originates from the concave branch of `test1111.m`; the saved plotting dataset originates from `1127concave_max_vivo.mat`.
 
 Keep `solver/` and `data/` in their existing locations. Entry points resolve paths relative to the repository, and generated outputs are saved in `results/`.
+
+Saved computed results include `num_modes=4` and `polynomial_degree=3`.
